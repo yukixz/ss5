@@ -30,6 +30,12 @@ UINT S5PwdFileCheck( struct _SS5ClientInfo *ci )
 
   char user[64];
   char password[64];
+  char expires[64];
+
+  char today[64];
+  time_t rawtime = time(NULL);
+  struct tm *timeinfo = localtime(&rawtime);
+  strftime(today, sizeof(today), "%F", timeinfo);
 
   if( (pf = fopen(S5PasswordFile,"r")) == NULL ) {
     ERRNO(0)
@@ -39,14 +45,16 @@ UINT S5PwdFileCheck( struct _SS5ClientInfo *ci )
   /* 
    *    Look for username and password into password file 
    */
-  while( fscanf(pf,"%63s %63s",user,password) != EOF ) {
-    if( STRCASEEQ(ci->Username,user,sizeof(user) - 1) && STREQ(ci->Password,password,sizeof(password) - 1) ) {
+  while( fscanf(pf,"%63s %63s %63s",user,password,expires) != EOF ) {
+    if( strcmp(expires,today) >= 0 && STRCASEEQ(ci->Username,user,sizeof(user) - 1) && STREQ(ci->Password,password,sizeof(password) - 1) ) {
       if( fclose(pf) ) {
         ERRNO(0)
         return ERR;
       }
       return OK;
     }
+    // Step to new line
+    while( fgetc(pf) != '\n' );
   }
 
   if( fclose(pf) ) {
