@@ -25,6 +25,7 @@ char *ss5ver=SS5_VERSION;
 UINT InitModule( struct _module *m )
 {
   char timeLog[32];
+  struct sigaction actionSigUsr1;
 
   time_t now = time(NULL);
 
@@ -38,11 +39,14 @@ UINT InitModule( struct _module *m )
     ; /*    VOID    */
   }
   else {
-    if( (S5LogFile = fopen(S5LoggingFile,"a+")) == NULL ) {
-      perror("[ERRO] Error opening log file$\nSystem Error: \n");
-      return ERR;
-    }
-    fflush(S5LogFile);
+    S5LogFileOpen();
+
+    /*
+     *     Set SIGUSR1 handler to reopen log file
+     */
+    actionSigUsr1.sa_flags   = SA_RESTART;
+    actionSigUsr1.sa_handler = S5LogFileReopen;
+    sigaction(SIGUSR1,&actionSigUsr1,NULL);
   }
 
   return OK;
@@ -68,6 +72,16 @@ UINT Logging( char *logString )
   return OK;
 }
 
+UINT S5LogFileOpen( void )
+{
+  if( (S5LogFile = fopen(S5LoggingFile,"a+")) == NULL ) {
+    perror("[ERRO] Error opening log file$\nSystem Error: \n");
+    return ERR;
+  }
+  fflush(S5LogFile);
+  return OK;
+}
+
 UINT S5LogFileClose( void )
 {
   if( fclose(S5LogFile) ) {
@@ -75,4 +89,17 @@ UINT S5LogFileClose( void )
     return ERR;
   }
   return OK;
+}
+
+void S5LogFileReopen( int sig )
+{
+  if( sig == SIGUSR1 ) {
+    if( getppid() == 1 ) {
+      Logging("[INFO] Reopening log file.");
+      LOCKMUTEXCO()
+      S5LogFileClose();
+      S5LogFileOpen();
+      UNLOCKMUTEXCO()
+    }
+  }
 }

@@ -122,10 +122,11 @@ UINT S5Core( int cSocket )
   }
 
   /*
-   *    Block HUP signal
+   *    Block signal
    */
   sigemptyset(&signalMask);
   sigaddset(&signalMask,SIGHUP);
+  sigaddset(&signalMask,SIGUSR1);
   sigaddset(&signalMask,SIGALRM);
   sigprocmask(SIG_BLOCK,&signalMask,NULL);
 

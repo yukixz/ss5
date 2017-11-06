@@ -34,10 +34,24 @@ UINT
 );
 
 /*
+ * Slave functions: open log file and verbose
+ */
+UINT
+  S5LogFileOpen(	void
+);
+
+/*
  * Slave functions: close log file and verbose
  */
 UINT
   S5LogFileClose(	void
+);
+
+/*
+ * Slave functions: reopen log file and verbose
+ */
+void
+  S5LogFileReopen(	int sig
 );
 
 #endif
