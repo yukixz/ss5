@@ -60,6 +60,13 @@ install:
 	if [ ! -f $(dst_dir)/etc/sysconfig/ss5 ]; then cp conf/ss5.sysconfig $(dst_dir)/etc/sysconfig/ss5; \
 	else cp conf/ss5.sysconfig $(dst_dir)/etc/sysconfig/ss5.rpmnew ; fi ; \
         fi )
+	@( if [ $(OS) = "Linux" ]; then \
+	if [ ! -d $(dst_dir)/etc/logrotate.d ]; then mkdir -p $(dst_dir)/etc/logrotate.d; fi ; \
+        fi )
+	@( if [ $(OS) = "Linux" ]; then \
+	if [ ! -f $(dst_dir)/etc/logrotate.d/ss5 ]; then cp conf/ss5.logrotate $(dst_dir)/etc/logrotate.d/ss5; \
+	else cp conf/ss5.logrotate $(dst_dir)/etc/logrotate.d/ss5.rpmnew ; fi ; \
+        fi )
 	@( if [ $(OS) = "SunOS" ]; then \
 	if [ ! -d $(dst_dir)/etc/init.d ]; then mkdir -p $(dst_dir)/etc/init.d; fi ; \
         fi )

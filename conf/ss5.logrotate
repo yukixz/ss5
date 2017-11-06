@@ -1,0 +1,10 @@
+/var/log/ss5 {
+    rotate 12
+    monthly
+    dateext
+    missingok
+    sharedscripts
+    postrotate
+        /bin/kill -USR1 `cat /var/run/ss5/ss5.pid`
+    endscript
+}
