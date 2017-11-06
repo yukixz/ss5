@@ -24,12 +24,13 @@
 
 UINT S5PwdFileCheck( struct _SS5ClientInfo *ci )
 {
-  FILE *pf;
-
   char logString[128];
 
+  FILE *pf;
+  char lbuff[256];  // line buffer
+  int  lrcnt = 0;   // line read count
   char user[64];
-  char password[64];
+  char passwd[64];
   char expires[64];
 
   char today[64];
@@ -45,16 +46,17 @@ UINT S5PwdFileCheck( struct _SS5ClientInfo *ci )
   /* 
    *    Look for username and password into password file 
    */
-  while( fscanf(pf,"%63s %63s %63s",user,password,expires) != EOF ) {
-    if( strcmp(expires,today) >= 0 && STRCASEEQ(ci->Username,user,sizeof(user) - 1) && STREQ(ci->Password,password,sizeof(password) - 1) ) {
+  while( fgets(lbuff, sizeof(lbuff), pf) != NULL ) {
+    lrcnt = sscanf(lbuff, "%63s %63s %63s", user,passwd,expires);
+    if ((lrcnt == 2 || (lrcnt == 3 && strcmp(expires,today) >= 0)) && 
+        STRCASEEQ(ci->Username,user,sizeof(user) - 1) &&
+        STREQ(ci->Password,passwd,sizeof(passwd) - 1)) {
       if( fclose(pf) ) {
         ERRNO(0)
         return ERR;
       }
       return OK;
     }
-    // Step to new line
-    while( fgetc(pf) != '\n' );
   }
 
   if( fclose(pf) ) {
